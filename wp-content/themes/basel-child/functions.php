@@ -2,6 +2,16 @@
 
 <?php
 
+function register_my_session()
+{
+  if( !session_id() )
+  {
+    session_start();
+  }
+}
+
+add_action('init', 'register_my_session');
+
 add_action( 'wp_enqueue_scripts', 'basel_child_enqueue_styles', 1000 );
 
 function basel_child_enqueue_styles() {

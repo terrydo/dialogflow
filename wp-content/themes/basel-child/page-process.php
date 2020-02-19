@@ -8,6 +8,60 @@ require __DIR__.'/vendor/autoload.php';
 const CREDENTIALS_DIR = __DIR__ . '\client-key.json';
 putenv('GOOGLE_APPLICATION_CREDENTIALS=' . CREDENTIALS_DIR);
 
+/**
+ * Add product carousel to message data
+ * @param [Array] $args Query arguments
+ * @param [Array] $messages The Messages object to add carousel data
+ * @param [Array] $push_data
+ */
+function createChatbotProductCarousel ($args, &$messages) {
+    $my_query = null;
+    $my_query = new WP_Query($args);
+
+    // For later use when current customer chooses a product from carousel.
+    if ( empty($_SESSION['latestProductCarousel']) ) {
+        $_SESSION['latestProductCarousel'] = [];
+    }
+
+    $push_data = [
+        "items" => [],
+        "platform" => "ACTIONS_ON_GOOGLE",
+        "type" => "carousel_card"
+    ];
+
+    if ($my_query->have_posts()) : while ($my_query->have_posts()) : $my_query->the_post();
+        
+        $product = wc_get_product( get_the_ID() );
+        $product_name = get_the_title();
+        $image = wp_get_attachment_image_src( get_post_thumbnail_id( get_the_ID() ), 'single-post-thumbnail' )[0];
+        $price = get_woocommerce_currency_symbol() . $product->get_price();
+
+        $push_data["items"][] = [
+            "ID" => $product->get_id(),
+            "description" => $price,
+            "permalink" => get_the_permalink(),
+            "image" => [
+                "url" => $image,
+                "accessibilityText" => $product_name
+            ],
+            "optionInfo" => [
+                "key" => "itemOne",
+                "synonyms" => [
+                    "thing one",
+                    "object one"
+                ]
+            ],
+            "title" => $product_name
+        ];
+    endwhile;wp_reset_query();endif;
+
+    $messages[] = $push_data;
+    
+    $_SESSION["latestProductCarousel"] = $push_data["items"];
+
+    return $push_data;
+}
+
 try {
     if(isset($_POST['submit'])){
         // create curl resource
@@ -85,41 +139,46 @@ try {
                 'post_type'           => 'product',
                 'showposts'           => -1
             );
-            $my_query = null;
-            $my_query = new WP_Query($args);
-            $products_recommend = array();
+            
+            createChatbotProductCarousel($args, $messages);
+        }
 
-            $push_data = [
-                "items" => [],
-                "platform" => "ACTIONS_ON_GOOGLE",
-                "type" => "carousel_card"
-            ];
+        // var_dump($action);
 
-            if ($my_query->have_posts()) : while ($my_query->have_posts()) : $my_query->the_post();
-                
-                $product = wc_get_product( get_the_ID() );
-                $product_name = get_the_title();
-                $image = wp_get_attachment_image_src( get_post_thumbnail_id( get_the_ID() ), 'single-post-thumbnail' )[0];
-                $price = get_woocommerce_currency_symbol() . $product->get_price();
+        if ($action === "products.selectNumber") {
+            $selectNumbers = $dec->queryResult->parameters->number;
 
-                $push_data["items"][] = [
-                    "description" => $price,
-                    "permalink" => get_the_permalink(),
-                    "image" => [
-                        "url" => $image,
-                        "accessibilityText" => $product_name
-                    ],
-                    "optionInfo" => [
-                        "key" => "itemOne",
-                        "synonyms" => [
-                            "thing one",
-                            "object one"
-                        ]
-                    ],
-                    "title" => $product_name
-                ];
-            endwhile;wp_reset_query();endif;
+            // var_dump('NUMBA', $selectNumbers, $_SESSION);
 
+            if (!empty($_SESSION['latestProductCarousel'])) {
+                $productsAddedToCart = [];
+
+                foreach ($selectNumbers as $number) {
+                    $idx = $number - 1;
+                    $userSelectedProduct = !empty($_SESSION['latestProductCarousel'][$idx])
+                        ? $_SESSION['latestProductCarousel'][$idx]
+                        : null;
+
+                    if (!$userSelectedProduct) continue;
+
+                    $productsAddedToCart[] = $userSelectedProduct;
+
+                    WC()->cart->add_to_cart( $userSelectedProduct['ID'] );
+                }
+
+                if (empty($productsAddedToCart)) {
+                    $defaultResponse = "Sorry. I can't find any corresponding products to your entered numbers";
+                } else {
+                    $defaultResponse = "I added ";
+
+                    foreach ($productsAddedToCart as $product) {
+                        $name = $product["title"];
+                        $defaultResponse .= "\n{$name}";
+                    }
+
+                    $defaultResponse .="\nto your cart. If you've finished shopping, just tell me to make an order for you.";
+                }
+            }
         }
 
         if ($action === "searchProductsName") {
@@ -131,42 +190,8 @@ try {
                 's'                   => $user_string,
                 'showposts'           => -1
             );
-            $my_query = null;
-            $my_query = new WP_Query($args);
-            $products_recommend = array();
 
-            $push_data = [
-                "items" => [],
-                "platform" => "ACTIONS_ON_GOOGLE",
-                "type" => "carousel_card"
-            ];
-
-            if ($my_query->have_posts()) : while ($my_query->have_posts()) : $my_query->the_post();
-                
-                $product = wc_get_product( get_the_ID() );
-                $product_name = get_the_title();
-                $image = wp_get_attachment_image_src( get_post_thumbnail_id( get_the_ID() ), 'single-post-thumbnail' )[0];
-                $price = get_woocommerce_currency_symbol() . $product->get_price();
-
-                $push_data["items"][] = [
-                    "description" => $price,
-                    "permalink" => get_the_permalink(),
-                    "image" => [
-                        "url" => $image,
-                        "accessibilityText" => $product_name
-                    ],
-                    "optionInfo" => [
-                        "key" => "itemOne",
-                        "synonyms" => [
-                            "thing one",
-                            "object one"
-                        ]
-                    ],
-                    "title" => $product_name
-                ];
-            endwhile;wp_reset_query();endif;
-
-            $messages[] = $push_data;
+            createChatbotProductCarousel($args, $messages);
         }
 
         if ($action === "input.unknown") {
@@ -273,43 +298,8 @@ try {
                 // ],
                 'showposts'           => -1
             );
-            $my_query = null;
-            $my_query = new WP_Query($args);
-            $products_recommend = array();
 
-            $push_data = [
-                "items" => [],
-                "platform" => "ACTIONS_ON_GOOGLE",
-                "type" => "carousel_card"
-            ];
-
-            if ($my_query->have_posts()) : while ($my_query->have_posts()) : $my_query->the_post();
-                
-                $product = wc_get_product( get_the_ID() );
-                $product_name = get_the_title();
-                $image = wp_get_attachment_image_src( get_post_thumbnail_id( get_the_ID() ), 'single-post-thumbnail' )[0];
-                $price = $product->get_price_html();
-
-                $push_data["items"][] = [
-                    "description" => $price,
-                    "permalink" => get_the_permalink(),
-                    "image" => [
-                        "url" => $image,
-                        "accessibilityText" => $product_name
-                    ],
-                    "optionInfo" => [
-                        "key" => "itemOne",
-                        "synonyms" => [
-                            "thing one",
-                            "object one"
-                        ]
-                    ],
-                    "title" => $product_name
-                ];
-            endwhile;wp_reset_query();endif;
-
-            $messages[] = $push_data;
-
+            $push_data = createChatbotProductCarousel($args, $messages);
 
             if (!empty($push_data["items"])) {
                 $messages[] = $push_data;
@@ -409,7 +399,6 @@ try {
         $response -> messages = $messages;
         $response -> isEndOfConversation = $isEndOfConversation;
         $response -> test = $dec;
-        $response -> testpro = $products_recommend;
         echo json_encode($response);
         // close curl resource to free up system resources
         curl_close($ch);
