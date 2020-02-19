@@ -1,0 +1,124 @@
+
+// --------------------------------------------------------------------------------------------
+// THANK YOU PAGE
+// --------------------------------------------------------------------------------------------
+
+.woocommerce-order-received {
+
+	.site-content {
+
+		.entry-content {
+
+			> .woocommerce {
+				max-width: 800px;
+   				margin: 0 auto;
+			}
+		}
+	}
+	
+	.responsive-table {
+	    margin-bottom:60px;
+	}
+
+	.woocommerce {
+
+		.woocommerce-thankyou-order-received {
+		    background: transparent;
+		    border: 2px dashed #7a9c59;
+		    color: #7a9c59;
+		    font-weight: 600;
+		    width:100%;
+		    text-align:center;
+		    font-size:16px;
+		    margin-bottom:30px;
+		    line-height: 1.4;
+		    padding: 15px 25px;
+		}
+	}
+
+	ul.order_details {
+	    margin-left:0;
+	}
+
+	.order-again {
+		margin-top: -40px;
+		margin-bottom: 60px;
+	}
+}
+
+.woocommerce-order-details {
+	// margin-top: 30px;
+	// max-width: 600px;
+	// margin: 0 auto;
+
+	> p {
+		text-align: center;
+		// font-size: 16px;
+		// background-color: #f8f8f8;
+		// padding-top: 20px;
+		// padding-bottom: 20px;
+		// padding-right: 15px;
+		// padding-left: 15px;
+		// margin-bottom: 30px;
+
+		> a {
+			margin-left: 5px;
+			margin-right: 5px;
+		}
+	}
+}
+
+.woocommerce-order-details__title,
+.wc-bacs-bank-details-heading {
+	text-transform: uppercase;
+   	font-weight: 600;
+   	margin-bottom: 5px;
+   	text-align: center;
+
+   	+ h3 {
+   		font-size: 16px;
+   		opacity: 0.8;
+   		margin-bottom: 30px;
+   		text-align: center;
+   	}
+}
+
+.woocommerce-customer-details {
+
+	> h2,
+	> h3 {
+		text-transform: uppercase;
+   		font-weight: 600;
+   		text-align: center;
+	}
+
+	address {
+		padding: 25px 30px 30px 30px;
+	    border: 2px dashed #d5d5d5;
+	}
+}
+
+// .woocommerce-thankyou-addresses {
+// 	max-width: 600px;
+// 	margin-right: auto;
+// 	margin-left: auto;
+
+// 	> h2 {
+// 		text-align: center;
+// 		text-transform: uppercase;
+// 		font-weight: 600;
+// 	}
+
+// 	> header {
+
+// 		> h2,
+// 		> h3 {
+// 			text-transform: uppercase;
+// 			font-weight: 600;			
+// 		}
+
+// 		> h2 {
+// 			text-align: center;
+// 		}
+// 	}
+// }

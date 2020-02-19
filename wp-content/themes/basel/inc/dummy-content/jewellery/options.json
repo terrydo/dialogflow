@@ -1,0 +1,14 @@
+{
+	"site_width": "boxed",
+	"header": "logo-center",
+	"menu_align": "center",
+
+	"primary-font": {
+		"font-family": "Lora",
+		"google": true
+	},
+	"post-titles-font": {
+		"font-family": "Lora",
+		"google": true
+	}
+}

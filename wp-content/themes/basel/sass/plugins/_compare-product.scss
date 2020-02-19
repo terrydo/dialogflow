@@ -1,0 +1,319 @@
+
+// --------------------------------------------------------------------------------------------
+// COMPARE PRODUCR
+// --------------------------------------------------------------------------------------------
+
+.compare-opened {
+    overflow: hidden;
+}
+
+#cboxContent {
+    background-color: transparent;
+}
+
+#cboxMiddleLeft,
+#cboxMiddleRight,
+#cboxTopLeft,
+#cboxTopCenter,
+#cboxTopRight,
+#cboxBottomLeft,
+#cboxBottomCenter,
+#cboxBottomRight {
+	display: none;
+}
+
+#cboxClose {
+    bottom: -50px;
+    color:white;
+    background:none;
+    text-transform:uppercase;
+    font-size: 32px;
+    font-weight:bold;
+    letter-spacing: 1.5px;
+    line-height:33px;
+    width: auto;
+    height: auto;
+    text-indent: 0;
+    padding-right:50px;
+    -webkit-transition:color 0.2s ease-in-out;
+    -moz-transition:color 0.2s ease-in-out;
+    -o-transition:color 0.2s ease-in-out;
+    transition:color 0.2s ease-in-out;
+
+    &:after,
+    &:before {
+        content: " ";
+        width: 35px;
+        height: 3px;
+        position:absolute;
+        right:0px;
+        top: 15px;
+        
+        display: inline-block;
+        background-color: white;
+        -webkit-transition:background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+        -moz-transition:background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+        -o-transition:background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+        transition:background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+    }
+
+    &:hover {
+
+        &:after {
+            transform:rotate(-45deg);
+            -webkit-transform:rotate(-45deg);
+            -moz-transform:rotate(-45deg);
+            -o-transform:rotate(-45deg);
+            -ms-transform:rotate(-45deg);
+            -sand-transform:rotate(-45deg);
+        }
+
+        &:before {
+            -webkit-transform:rotate(45deg);
+            -moz-transform:rotate(45deg);
+            -o-transform:rotate(45deg);
+            -ms-transform:rotate(45deg);
+            -sand-transform:rotate(45deg);
+            transform:rotate(45deg);
+        }
+    }
+        
+}
+
+html body {
+
+    > h1 {
+        display:none;
+    }
+
+    > #yith-woocompare {
+        padding: 0;
+    }
+}
+
+.DTFC_LeftWrapper {
+  background-color: #f7f7f7;
+}
+
+#yith-woocompare table.compare-list {
+
+    thead,
+    tfoot {
+        display: none;
+    }
+
+    th,
+    td {
+        border-right: none;
+    }
+    
+    th {
+        padding-left: 25px;
+        padding-right: 25px;
+        padding-top: 15px;
+        padding-bottom: 15px;
+        font-weight: bold;
+        border-top: none;
+        font-size: 18px;
+    }
+
+    td {
+        padding-left: 20px;
+        padding-right: 20px;
+        padding-top: 15px;
+        padding-bottom: 15px;
+        border-top: none;
+        border-bottom: 2px solid #F2F2F2;
+
+        &.odd {
+          background-color: transparent;
+        }
+
+        img {
+            margin-bottom: 0px;
+            max-width: 100%;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+    }
+
+    tr {
+
+        &.title {
+
+            td {
+                text-transform: uppercase;
+                color:#212121;
+                padding-bottom: 10px;
+            }
+        }
+
+        &.price {
+
+            td {
+              text-decoration: none;
+              font-size: 18px;
+            }
+
+            &.repeated td {
+                padding-top: 20px;
+            }
+        }
+
+        &.stock {
+
+            td {
+
+                span {
+                    display: inline-block;
+                    padding: 5px 10px;
+                    color: #297E29;
+                    border: 2px solid #297E29;
+                    text-transform: uppercase;
+                    font-size: 12px;
+                    letter-spacing: .3px;
+                    font-weight: bold;
+
+                    &.out-of-stock {
+                        border-color:#B50808;
+                        color: #B50808;
+                    }
+                }
+            }
+        }
+
+        &.add-to-cart {
+
+            td {
+
+                a {
+                    display: inline-block;
+                    font-size: 12px;
+                    line-height:16px;
+                    padding-top: 7px;
+                    padding-bottom: 7px;
+                    padding-left: 14px;
+                    padding-right: 14px;
+                      line-height: 18px;
+                    text-transform: uppercase;
+                    letter-spacing: .3px;
+                    border-radius: 0px;
+                    border:1px solid;
+                    -webkit-transition:all 0.25s ease-in-out;
+                    -moz-transition:all 0.25s ease-in-out;
+                    -o-transition:all 0.25s ease-in-out;
+                    transition:all 0.25s ease-in-out;
+                    @include btn-color-black;
+                }
+            }
+
+            .add_to_cart_button {
+
+                .blockUI {
+
+                    &.blockOverlay {
+                        display: none !important;
+                    }
+                }
+
+                &.added {
+                    display: none;
+                }
+
+                &.loading {
+                    padding-right: 35px;
+                }
+
+                &:after {
+                    border-color: white;
+                }
+            }
+        }
+
+        &.no-products {
+
+            td {
+                border: none;
+                font-size: 24px;
+                padding-top: 25px;
+                text-transform: uppercase;
+                color: black;
+            }
+        }
+
+        &.remove {
+
+            a {
+                color:#212121;
+                text-transform:uppercase;
+                font-size: 12px;
+                font-weight:bold;
+                letter-spacing: 1.5px;
+                line-height:20px;
+                display: inline-block;
+                padding-right:25px;
+                position: relative;
+                -webkit-transition:color 0.2s ease-in-out;
+                -moz-transition:color 0.2s ease-in-out;
+                -o-transition:color 0.2s ease-in-out;
+                transition:color 0.2s ease-in-out;
+
+                &:before,
+                &:after {
+                    content: " ";
+                    width: 15px;
+                    height: 2px;
+                    position:absolute;
+                    right:0px;
+                    top: 9px;
+                    display: inline-block;
+                    background-color: #212121;
+                    -webkit-transition:background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+                    -moz-transition:background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+                    -o-transition:background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+                    transition:background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+                }
+
+                &:hover,
+                &:focus {
+
+                    &:after {
+                        transform:rotate(-45deg);
+                        -webkit-transform:rotate(-45deg);
+                        -moz-transform:rotate(-45deg);
+                        -o-transform:rotate(-45deg);
+                        -ms-transform:rotate(-45deg);
+                        -sand-transform:rotate(-45deg);
+                    }
+
+                    &:before {
+                        -webkit-transform:rotate(45deg);
+                        -moz-transform:rotate(45deg);
+                        -o-transform:rotate(45deg);
+                        -ms-transform:rotate(45deg);
+                        -sand-transform:rotate(45deg);
+                        transform:rotate(45deg);
+                    }
+                }
+
+                .blockOverlay {
+                    display: none!important; 
+                }
+
+                .remove {
+                    display: none;
+                }
+            }
+        }
+
+        &:last-child {
+
+            th,
+            td {
+                border-bottom:none;
+            }
+        }
+    }
+}
+
