@@ -133,19 +133,144 @@ try {
         $intentid = $dec->queryResult->intent->name;
         $intentname = $dec->queryResult->intent->displayName;
 
-        if ($action === "showAllProduct") {
+        if ($action === "product.show") {
+            
+            $brand = $dec->queryResult->parameters->brand;
+            $typeOfWatch = $dec->queryResult->parameters->typeOfWatch;
+
             // arg query to get products
             $args = array(
                 'post_type'           => 'product',
-                'showposts'           => -1
+                'showposts'           => -1,
             );
+
+            // Users want to see all products
+            if (!$typeOfWatch && !$brand) {
+                $push_data = createChatbotProductCarousel($args, $messages);
+            } else {
+                $defaultResponse = "";
+            }
+
+            if ($brand) {
+                $cat_args = array(
+                    'orderby'    => 'name',
+                    'order'      => 'asc',
+                    'hide_empty' => false,
+                );
+                
+                $product_categories = get_terms( 'product_cat', $cat_args );
+                
+                $messages[] = [
+                    "simpleResponses" => [
+                        [
+                            "textToSpeech" => "What type of watch are you looking for?"
+                        ]
+                    ],
+                    "platform" => "ACTIONS_ON_GOOGLE",
+                ];
+
+                $suggestions = [];
+
+                foreach ($product_categories as $cat) {
+                    if ($cat->term_id == 1) continue;
+
+                    $suggestions[] = [
+                        "title" => $cat->name
+                    ];
+                }
+
+                $messages[] = [
+                    "suggestions"=> $suggestions,
+                    "platform" => "ACTIONS_ON_GOOGLE",
+                ];
+            } else if ($typeOfWatch) {
+                $brands = get_terms( array(
+                    'taxonomy' => 'brand',
+                    'hide_empty' => false,
+                ) );
+
+                $messages[] = [
+                    "simpleResponses" => [
+                        [
+                            "textToSpeech" => "What brand are you looking for?"
+                        ]
+                    ],
+                    "platform" => "ACTIONS_ON_GOOGLE",
+                ];
+
+                $suggestions = [];
+
+                foreach ($brands as $brand) {
+                    $suggestions[] = [
+                        "title" => $brand->name
+                    ];
+                }
+
+                $messages[] = [
+                    "suggestions"=> $suggestions,
+                    "platform" => "ACTIONS_ON_GOOGLE",
+                ];
+            }
+        }
+
+        if ($action === "product.filterByType" || $action === "product.filterByBrand") {
+            $brand = end($dec->queryResult->outputContexts)->parameters->brand;
+            $typeOfWatch = end($dec->queryResult->outputContexts)->parameters->typeOfWatch;
+
+            $args = array(
+                'post_type'           => 'product',
+                'showposts'           => -1,
+                'tax_query'           => [
+                    'relation' => 'AND',
+                    [
+                        'taxonomy' => 'product_cat',
+                        'terms' => $typeOfWatch,
+                        'field' => 'slug'
+                    ],
+                    [
+                        'taxonomy' => 'brand',
+                        'terms' => $brand,
+                        'field' => 'slug'
+                    ],
+                ]
+            );
+
             
-            createChatbotProductCarousel($args, $messages);
+
+            $push_data = createChatbotProductCarousel($args, $messages);
+            $hasDefaultResponse = true;
+
+            if (empty($push_data['items'])) {
+                $defaultResponse = "Sorry. We could't find products that meet your requirements.";
+            } else {
+                $defaultResponse = "Here are some products.";
+
+                $messages[] = [
+                    "simpleResponses" => [
+                        [
+                            "textToSpeech" => "Do you want more recommendation?"
+                        ]
+                    ],
+                    "platform" => "ACTIONS_ON_GOOGLE",
+                ];
+    
+                $messages[] = [
+                    "suggestions"=> [
+                        [
+                          "title"=> "Yes"
+                        ],
+                        [
+                          "title"=> "No"
+                        ],
+                    ],
+                    "platform" => "ACTIONS_ON_GOOGLE",
+                ];
+            }
         }
 
         // var_dump($action);
 
-        if ($action === "products.selectNumber") {
+        if ($action === "product.selectNumber") {
             $selectNumbers = $dec->queryResult->parameters->number;
 
             // var_dump('NUMBA', $selectNumbers, $_SESSION);
@@ -178,6 +303,8 @@ try {
 
                     $defaultResponse .="\nto your cart. If you've finished shopping, just tell me to make an order for you.";
                 }
+            } else {
+                $defaultResponse = "Sorry I can't find that product.";
             }
         }
 
@@ -192,6 +319,50 @@ try {
             );
 
             createChatbotProductCarousel($args, $messages);
+        }
+
+        if ($action === "order.create") {
+            if (is_user_logged_in()) {           
+                $current_user = wp_get_current_user();
+                
+                $billing_addr = get_user_meta($current_user->ID, 'billing_address_1', true);
+                $billing_first_name = get_user_meta($current_user->ID, 'billing_first_name', true);
+                $billing_last_name = get_user_meta($current_user->ID, 'billing_last_name', true);
+
+                if (!$billing_addr) {
+                    $edit_addr = wc_get_page_id( 'edit_address' );
+                    if ( $edit_addr ) {
+                        $link = get_permalink( $edit_addr );
+
+                        $defaultResponse = 'You haven\'t entered your billing address. You can change it by clicking <a href="' . $link . '">here</a>';
+                    } else {
+                        throw new Exception("There's no account page?", 1);
+                    }
+                } else {
+                    // var_dump($current_user, $billing_addr, $billing_first_name, $billing_last_name);
+
+                    $address = array(
+                        'first_name' => $billing_first_name,
+                        'last_name'  => $billing_last_name,
+                        'email'      => $current_user->data->user_email,
+                        'address_1'  => $billing_addr,
+                    );
+                  
+                    // Now we create the order
+                    $order = wc_create_order();
+                    $order->set_address( $address, 'billing' ); //
+                    $order->calculate_totals();
+                    $order->update_status("Completed", 'Imported order', TRUE); 
+
+                    $viewOrderUrl = wc_get_page_id( 'view_order' );
+                    $link = get_permalink( $viewOrderUrl );
+
+                    $defaultResponse = 'Your order ID is #' . $order->get_id() . '. You can view it <a href="' . $link . '">here</a>. Or you can type "Review order #' . $order->get_id() . '.';
+                }
+            }
+            else {
+                $defaultResponse = "You must login first.";
+            }
         }
 
         if ($action === "input.unknown") {
@@ -236,7 +407,7 @@ try {
 
             // arg query to get products
             $args = array(
-                'post_type'           => 'product',
+                'post_type' => 'product',
                 'tax_query' => array(
                     'relation' => 'AND',
                     array(
@@ -301,9 +472,7 @@ try {
 
             $push_data = createChatbotProductCarousel($args, $messages);
 
-            if (!empty($push_data["items"])) {
-                $messages[] = $push_data;
-            } else {
+            if (empty($push_data["items"])) {
                 $defaultResponse = "Sorry. We can't find products that meet your requirements.";
             }
         }

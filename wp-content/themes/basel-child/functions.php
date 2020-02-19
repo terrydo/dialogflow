@@ -56,3 +56,41 @@ function wooc_extra_register_fields() {?>
        <?php
  }
  add_action( 'woocommerce_register_form_start', 'wooc_extra_register_fields' );
+
+
+
+ /** Validate the extra register fields. */
+function wooc_validate_extra_register_fields( $username, $email, $validation_errors ) {
+  if ( isset( $_POST['billing_first_name'] ) && empty( $_POST['billing_first_name'] ) ) {
+    $validation_errors->add( 'billing_first_name_error', __( 'What\'s your first name?', 'woocommerce' ) );
+  }
+   
+  if (  isset( $_POST['billing_last_name'] ) && empty( $_POST['billing_last_name'] ) ) {
+    $validation_errors->add( 'billing_last_name_error', __( 'What\'s your last name?', 'woocommerce' ) );
+  }
+}
+add_action( 'woocommerce_register_post', 'wooc_validate_extra_register_fields', 10, 3 );
+ 
+/** Save the extra register fields. */
+function wooc_save_extra_register_fields( $customer_id ) {
+
+  if ( isset( $_POST['billing_first_name'] ) ) {
+		// WordPress default first name field.
+		update_user_meta( $customer_id, 'first_name', sanitize_text_field( $_POST['billing_first_name'] ) );
+		// WooCommerce billing first name.
+		update_user_meta( $customer_id, 'billing_first_name', sanitize_text_field( $_POST['billing_first_name'] ) );
+	}
+	
+	if ( isset( $_POST['billing_last_name'] ) ) {
+		// WordPress default last name field.
+		update_user_meta( $customer_id, 'last_name', sanitize_text_field( $_POST['billing_last_name'] ) );
+		// WooCommerce billing last name.
+		update_user_meta( $customer_id, 'billing_last_name', sanitize_text_field( $_POST['billing_last_name'] ) );
+	}
+  
+
+	if ( isset( $_POST['billing_address_1'] ) ) {
+		update_user_meta( $customer_id, 'billing_address_1', sanitize_text_field( $_POST['billing_address_1'] ) );
+	}
+}
+add_action( 'woocommerce_created_customer', 'wooc_save_extra_register_fields' );
