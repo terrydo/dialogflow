@@ -141,7 +141,7 @@ try {
             // arg query to get products
             $args = array(
                 'post_type'           => 'product',
-                'showposts'           => -1,
+                'showposts'           => 30,
             );
 
             // Users want to see all products
@@ -334,7 +334,7 @@ try {
                     if ( $edit_addr ) {
                         $link = get_permalink( $edit_addr );
 
-                        $defaultResponse = 'You haven\'t entered your billing address. You can change it by clicking <a href="' . $link . '">here</a>';
+                        $defaultResponse = 'You haven\'t entered your billing address. You can change it by clicking <a href="' . $link . '" target="_blank">here</a>';
                     } else {
                         throw new Exception("There's no account page?", 1);
                     }
@@ -348,16 +348,24 @@ try {
                         'address_1'  => $billing_addr,
                     );
                   
-                    // Now we create the order
-                    $order = wc_create_order();
+                    $cart = WC()->cart;
+                    $checkout = WC()->checkout();
+                    $order_id = $checkout->create_order([
+                        'customer_id' => $current_user->ID
+                    ]);
+
+                    $order = wc_get_order( $order_id );
+                    
                     $order->set_address( $address, 'billing' ); //
                     $order->calculate_totals();
-                    $order->update_status("Completed", 'Imported order', TRUE); 
+                    // $order->update_status("Completed", 'Imported order', TRUE); 
+                    $order->update_status('reviewing');
+                    $cart->empty_cart();
 
-                    $viewOrderUrl = wc_get_page_id( 'view_order' );
-                    $link = get_permalink( $viewOrderUrl );
+                    $pageId = wc_get_page_id( 'view_order' );
+                    $link = get_permalink( $pageId );
 
-                    $defaultResponse = 'Your order ID is #' . $order->get_id() . '. You can view it <a href="' . $link . '">here</a>. Or you can type "Review order #' . $order->get_id() . '.';
+                    $defaultResponse = 'Your order ID is #' . $order->get_id() . '. You can view it <a href="' . $link . '">here</a>. Or you can type "Review order #' . $order->get_id() . '".';
                 }
             }
             else {
@@ -365,35 +373,68 @@ try {
             }
         }
 
-        if ($action === "input.unknown") {
-            $user_string = $dec->queryResult->queryText;
+        if ($action === "order.review") {
+            if (is_user_logged_in()) {           
+                $current_user = wp_get_current_user();
 
-            $messages[] = [
-                "simpleResponses" => [
-                    [
-                        "textToSpeech" => "Do you want me to recommend you some products?"
-                    ]
-                ],
-                "platform" => "ACTIONS_ON_GOOGLE",
-            ];
+                $order_id = $dec->queryResult->parameters->orderId;
 
-            $messages[] = [
-                "suggestions"=> [
-                    [
-                      "title"=> "Okay"
-                    ],
-                    [
-                      "title"=> "No, thanks"
-                    ],
-                ],
-                "platform" => "ACTIONS_ON_GOOGLE",
-            ];
+                $order = new WC_Order($order_id);
+
+                if ($order->customer_id != $current_user->ID) {
+                    $defaultResponse = "Order is not exist. Could you please recheck the order's ID in your account page?";
+                } else {
+                    $status = $order->get_status();
+                    
+                    switch ($status) {
+                        case 'reviewing':
+                            $defaultResponse = "Your order #{$order_id} is being reviewed. Waiting for shop's confirmation.";
+                            break;
+                        case 'pending':
+                            $defaultResponse = "Your order #{$order_id} is confirmed, waiting for the payment.";
+                            break;
+                        case 'processing':
+                            $defaultResponse = "Your order #{$order_id} is being shipped, please check your email for more information.";
+                            break;
+                        case 'completed':
+                            $defaultResponse = "Your order #{$order_id} is completed.";
+                            break;
+                    }
+                }
+            } else {
+                $defaultResponse = "You must login first.";
+            }
         }
+
+        // if ($action === "input.unknown") {
+        //     $user_string = $dec->queryResult->queryText;
+
+        //     $messages[] = [
+        //         "simpleResponses" => [
+        //             [
+        //                 "textToSpeech" => "Do you want me to recommend you some products?"
+        //             ]
+        //         ],
+        //         "platform" => "ACTIONS_ON_GOOGLE",
+        //     ];
+
+        //     $messages[] = [
+        //         "suggestions"=> [
+        //             [
+        //               "title"=> "Okay"
+        //             ],
+        //             [
+        //               "title"=> "No, thanks"
+        //             ],
+        //         ],
+        //         "platform" => "ACTIONS_ON_GOOGLE",
+        //     ];
+        // }
         
         // check if is finalRecommendation action from chatbot
         if ($action === "finalRecommendation") {
             // get all options selected
-            $botOptions = $dec->queryResult->outputContexts[0]->parameters;
+            $botOptions = end($dec->queryResult->outputContexts)->parameters;
 
             // must lower case value from chatbot to match with slug in wordpress
             $category = strtolower($botOptions->typeOfWatch);

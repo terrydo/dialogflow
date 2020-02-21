@@ -12,6 +12,32 @@ function register_my_session()
 
 add_action('init', 'register_my_session');
 
+function register_reviewing_order_status() {
+  register_post_status( 'wc-reviewing', array(
+      'label'                     => 'Reviewing',
+      'public'                    => true,
+      'show_in_admin_status_list' => true,
+      'show_in_admin_all_list'    => true,
+      'exclude_from_search'       => false,
+      'label_count'               => _n_noop( 'Reviewing <span class="count">(%s)</span>', 'Reviewing <span class="count">(%s)</span>' )
+  ) );
+}
+
+add_action( 'init', 'register_reviewing_order_status' );
+
+function add_reviewing_to_order_statuses( $order_statuses ) {
+  $new_order_statuses = array();
+  foreach ( $order_statuses as $key => $status ) {
+      $new_order_statuses[ $key ] = $status;
+      if ( 'wc-processing' === $key ) {
+          $new_order_statuses['wc-reviewing'] = 'Reviewing';
+      }
+  }
+  return $new_order_statuses;
+}
+
+add_filter( 'wc_order_statuses', 'add_reviewing_to_order_statuses' );
+
 add_action( 'wp_enqueue_scripts', 'basel_child_enqueue_styles', 1000 );
 
 function basel_child_enqueue_styles() {
