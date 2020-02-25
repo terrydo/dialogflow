@@ -110,6 +110,100 @@
         parent.append(simpleResponseRow);
     }
 
+    function renderRating(ratingData,parent) {
+        var ratingDiv = jQuery('<div/>', {
+            class: 'rating'
+        });
+
+        var ratingText = jQuery('<div/>', {
+            class: 'rating__text'
+        }).css({
+            'text-align': 'right'
+        });
+
+        var ratingStarContainer = jQuery('<div/>', {
+            class: 'rating__starContainer'
+        }).css({
+            'margin-top': '7px',
+            'text-align': 'right'
+        });
+
+        ratingText.text(ratingData.rating);
+        ratingDiv.append(ratingText);
+
+        var sessionId = $("#sessionId").text().trim();
+
+        var ratingStars = [];
+
+        for (var i = 1; i <= 5; i++) {
+            (function(i){
+                var ratingStar = jQuery('<a/>', {
+                    class: 'rating__star'
+                }).css({
+                    'padding-right': '8px',
+                    'font-size': '1.2em'
+                }).html('<i class="fa fa-star"></i>');
+                
+                ratingStars.push(ratingStar[0]);
+
+                ratingStar.css({
+                    color: '#000',
+                    transition: 'none',
+                    display: 'inline-block',
+                    cursor: 'pointer'
+                });
+
+                ratingStar.hover(function(e){
+                    e.stopPropagation();
+
+                    $(ratingStars).css('color', '#000');
+                    for (var j = 0; j < i; j++) {
+                        (function(j){
+                            $(ratingStars[j]).css('color', '#d14');
+                        })(j)
+                    }
+                })
+
+                ratingStar.mouseleave(function(){
+                    $(ratingStars).css('color', '#000');
+                })
+
+
+                var spinnerDOM = $('<i/>').addClass('fa fa-spinner fa-spin');
+
+                ratingStar.click(function(e){
+                    e.stopPropagation();
+
+                    $.ajax({
+                        url: wp.ajax.settings.url,
+                        data: {
+                            action: 'send_chatbot_rating',
+                            sessionId: sessionId,
+                            star: i
+                        },
+                        method: 'POST',
+                        beforeSend: function() {
+                            ratingDiv.remove();
+                            parent.append(spinnerDOM);
+                        },
+                        success: function() {
+                            spinnerDOM.remove();
+                            var thankyou = jQuery('<div/>').css({'text-align': 'right'}).text('Thank you for your feedback!');
+                            parent.append(thankyou);
+                        }
+                    })
+                })
+    
+                ratingStarContainer.append(ratingStar);
+            })(i)
+        }
+
+        ratingDiv.append(ratingStarContainer);
+        parent.append(ratingDiv);
+
+        guid = ($("#sessionId").text()).trim();
+    }
+
     function renderRichControls(data, parent){
         var i,len = data.length;
         console.log(data, 'data');
@@ -140,6 +234,10 @@
                     data[i]['platform']==='ACTIONS_ON_GOOGLE'){
                     renderCarousel(data[i],parent);
                 }
+            }
+
+            if(data[i] && data[i]['rating']) {
+                renderRating(data[i], parent);
             }
         }
 

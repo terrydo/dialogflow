@@ -12,6 +12,54 @@ function register_my_session()
 
 add_action('init', 'register_my_session');
 
+function create_chatbot_rating_posttype() {
+ 
+  register_post_type( 'chatbot_rating',
+  // CPT Options
+      array(
+          'labels' => array(
+              'name' => __( 'Chatbot Rating' ),
+              'singular_name' => __( 'Chatbot Rating' )
+          ),
+          'public' => true,
+          'has_archive' => false,
+          'show_in_rest' => false,
+      )
+  );
+}
+// Hooking up our function to theme setup
+add_action( 'init', 'create_chatbot_rating_posttype' );
+
+function chatbot_rating_columns( $columns ) {
+
+	$columns = array(
+		'cb' => '&lt;input type="checkbox" />',
+    'title' => __( 'IP' ),
+    'session_id' => __('Session ID'),
+    'rating' => __('Rating (stars)'),
+		'date' => __( 'Date' )
+	);
+
+	return $columns;
+}
+
+// Add the data to the custom columns for the book post type:
+add_action( 'manage_chatbot_rating_posts_custom_column' , 'chatbot_rating_column_data', 10, 2 );
+
+function chatbot_rating_column_data( $column, $post_id ) {
+  switch ( $column ) {
+    case 'session_id' :
+      echo get_post_meta( $post_id , 'session_id' , true ); 
+      break;
+
+    case 'rating' :
+      echo get_post_meta( $post_id , 'rating' , true ); 
+      break;
+  }
+}
+
+add_filter( 'manage_edit-chatbot_rating_columns', 'chatbot_rating_columns' ) ;
+
 function register_reviewing_order_status() {
   register_post_status( 'wc-reviewing', array(
       'label'                     => 'Reviewing',
@@ -39,6 +87,23 @@ function add_reviewing_to_order_statuses( $order_statuses ) {
 add_filter( 'wc_order_statuses', 'add_reviewing_to_order_statuses' );
 
 add_action( 'wp_enqueue_scripts', 'basel_child_enqueue_styles', 1000 );
+
+function send_chatbot_rating() {
+  $sessionId = $_POST['sessionId'];
+  $star = $_POST['star'];
+
+  $insertedPost = wp_insert_post([
+    'post_title' => $_SERVER['REMOTE_ADDR'],
+    'post_type' => 'chatbot_rating',
+    'post_status' =>  'publish'
+  ]);
+
+  add_post_meta($insertedPost, 'session_id', $sessionId);
+  add_post_meta($insertedPost, 'rating', $star);
+}
+
+add_action( 'wp_ajax_nopriv_send_chatbot_rating', 'send_chatbot_rating' );
+add_action( 'wp_ajax_send_chatbot_rating', 'send_chatbot_rating' );
 
 function basel_child_enqueue_styles() {
 	$version = basel_get_theme_info( 'Version' );

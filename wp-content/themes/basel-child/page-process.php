@@ -64,6 +64,7 @@ function createChatbotProductCarousel ($args, &$messages) {
 
 try {
     if(isset($_POST['submit'])){
+        
         // create curl resource
         $ch = curl_init();
         $userquery = $_POST['message'];
@@ -366,6 +367,10 @@ try {
                     $link = get_permalink( $pageId );
 
                     $defaultResponse = 'Your order ID is #' . $order->get_id() . '. You can view it <a href="' . $link . '">here</a>. Or you can type "Review order #' . $order->get_id() . '".';
+                    
+                    $messages[] = [
+                        "rating" => "How would you rate your experience with our chatbot service?"
+                    ];
                 }
             }
             else {
