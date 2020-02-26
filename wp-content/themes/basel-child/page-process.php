@@ -369,6 +369,22 @@ try {
                     $defaultResponse = 'Your order ID is #' . $order->get_id() . '. You can view it <a href="' . $link . '">here</a>. Or you can type "Review order #' . $order->get_id() . '".';
                     
                     $messages[] = [
+                        "key" => "response_time_rating",
+                        "rating" => "How would you rate our Response Time?"
+                    ];
+            
+                    $messages[] = [
+                        "key" => "helpful_rating",
+                        "rating" => "How helpful was the chatbot?"
+                    ];
+                    
+                    $messages[] = [
+                        "key" => "accuracy_rating",
+                        "rating" => "How accurate were the results?"
+                    ];
+            
+                    $messages[] = [
+                        "key" => "satisfaction_rating",
                         "rating" => "How would you rate your experience with our chatbot service?"
                     ];
                 }

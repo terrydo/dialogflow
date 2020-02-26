@@ -115,6 +115,8 @@
             class: 'rating'
         });
 
+        var key = ratingData.key;
+
         var ratingText = jQuery('<div/>', {
             class: 'rating__text'
         }).css({
@@ -137,6 +139,7 @@
 
         for (var i = 1; i <= 5; i++) {
             (function(i){
+
                 var ratingStar = jQuery('<a/>', {
                     class: 'rating__star'
                 }).css({
@@ -179,7 +182,8 @@
                         data: {
                             action: 'send_chatbot_rating',
                             sessionId: sessionId,
-                            star: i
+                            star: i,
+                            key: key
                         },
                         method: 'POST',
                         beforeSend: function() {

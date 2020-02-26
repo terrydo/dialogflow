@@ -1,7 +1,6 @@
 <?php if (file_exists(dirname(__FILE__) . '/class.theme-modules.php')) include_once(dirname(__FILE__) . '/class.theme-modules.php'); ?>
 
 <?php
-
 function register_my_session()
 {
   if( !session_id() )
@@ -34,9 +33,12 @@ function chatbot_rating_columns( $columns ) {
 
 	$columns = array(
 		'cb' => '&lt;input type="checkbox" />',
-    'title' => __( 'IP' ),
-    'session_id' => __('Session ID'),
-    'rating' => __('Rating (stars)'),
+    'username' => __('Username'),
+    'response_time_rating' => __('Response time rating'),
+    'helpful_rating' => __('Helpful rating'),
+    'accuracy_rating' => __('Accuracy rating'),
+    'satisfaction_rating' => __('Experience rating'),
+    'average' => __('Average'),
 		'date' => __( 'Date' )
 	);
 
@@ -48,12 +50,42 @@ add_action( 'manage_chatbot_rating_posts_custom_column' , 'chatbot_rating_column
 
 function chatbot_rating_column_data( $column, $post_id ) {
   switch ( $column ) {
-    case 'session_id' :
-      echo get_post_meta( $post_id , 'session_id' , true ); 
+    case 'username' :
+      echo get_the_author_meta('user_login'); 
       break;
 
-    case 'rating' :
-      echo get_post_meta( $post_id , 'rating' , true ); 
+    case 'response_time_rating' :
+      echo get_post_meta( $post_id , 'response_time_rating' , true ); 
+      break;
+
+    case 'helpful_rating' :
+      echo get_post_meta( $post_id , 'helpful_rating' , true ); 
+      break;
+
+    case 'accuracy_rating' :
+      echo get_post_meta( $post_id , 'accuracy_rating' , true ); 
+      break;
+
+    case 'satisfaction_rating' :
+      echo get_post_meta( $post_id , 'satisfaction_rating' , true ); 
+      break;
+
+    case 'average' :
+      $avgArray = [];
+
+      $responseTimeRating = get_post_meta( $post_id , 'response_time_rating' , true );
+      $helpfulRating = get_post_meta( $post_id , 'helpful_rating' , true );
+      $accuracyRating = get_post_meta( $post_id , 'accuracy_rating' , true );
+      $satisfactionRating = get_post_meta( $post_id , 'satisfaction_rating' , true );
+
+      if ($responseTimeRating != '') $avgArray[] = $responseTimeRating;
+      if ($helpfulRating != '') $avgArray[] = $helpfulRating;
+      if ($accuracyRating != '') $avgArray[] = $accuracyRating;
+      if ($satisfactionRating != '') $avgArray[] = $satisfactionRating;
+
+      if (empty($avgArray)) break;
+
+      echo array_sum($avgArray) / count($avgArray);
       break;
   }
 }
@@ -91,15 +123,31 @@ add_action( 'wp_enqueue_scripts', 'basel_child_enqueue_styles', 1000 );
 function send_chatbot_rating() {
   $sessionId = $_POST['sessionId'];
   $star = $_POST['star'];
+  $key = $_POST['key'];
 
-  $insertedPost = wp_insert_post([
-    'post_title' => $_SERVER['REMOTE_ADDR'],
+  if (empty($sessionId) || empty($star) || empty($key)) return false;
+
+  $posts = get_posts( array(
     'post_type' => 'chatbot_rating',
-    'post_status' =>  'publish'
-  ]);
+    'meta_key'   => 'session_id',
+    'meta_value' => $sessionId,
+  ));
 
-  add_post_meta($insertedPost, 'session_id', $sessionId);
-  add_post_meta($insertedPost, 'rating', $star);
+  if (!empty($posts)) {
+    $post = $posts[0];
+    update_post_meta($post->ID, $key, $star);
+  } else {
+    $insertedPost = wp_insert_post([
+      'post_title' => $_SERVER['REMOTE_ADDR'],
+      'post_type' => 'chatbot_rating',
+      'post_status' =>  'publish'
+    ]);
+  
+    add_post_meta($insertedPost, 'session_id', $sessionId);
+    add_post_meta($insertedPost, $key, $star);
+  }
+
+  return true;
 }
 
 add_action( 'wp_ajax_nopriv_send_chatbot_rating', 'send_chatbot_rating' );
