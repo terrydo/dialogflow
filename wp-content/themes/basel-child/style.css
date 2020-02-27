@@ -1,11 +1,15 @@
 @charset "UTF-8";
-/*
-Theme Name: Dialogflow Shopping Site
-Author: the WordPress team
-Author URI: https://wordpress.org/
-Description: A new Gutenberg-ready theme.
-Version: 1.1
-License: GNU General Public License v2 or later
-License URI: LICENSE
-Text Domain: 
-*/
+
+#faq-bot {
+    padding-top: 35px;
+}
+.mybot {
+    position: fixed;
+    z-index: 10000;
+    right: 15px;
+    bottom: 15px;
+    width: 150px;
+}
+.mybot img {
+	border-radius: 50%;
+}

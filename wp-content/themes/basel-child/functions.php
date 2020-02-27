@@ -226,10 +226,20 @@ function wooc_save_extra_register_fields( $customer_id ) {
 		// WooCommerce billing last name.
 		update_user_meta( $customer_id, 'billing_last_name', sanitize_text_field( $_POST['billing_last_name'] ) );
 	}
-  
 
 	if ( isset( $_POST['billing_address_1'] ) ) {
 		update_user_meta( $customer_id, 'billing_address_1', sanitize_text_field( $_POST['billing_address_1'] ) );
 	}
 }
 add_action( 'woocommerce_created_customer', 'wooc_save_extra_register_fields' );
+
+  if( function_exists('acf_add_options_page') ) {
+    
+    acf_add_options_page();
+    
+  }
+
+    add_action( 'admin_enqueue_scripts', 'load_admin_styles' );
+    function load_admin_styles() {
+        wp_enqueue_style( 'admin_custom', get_stylesheet_directory_uri() . '/css/admin-custom.css', false, '1.0.0' );
+    }  

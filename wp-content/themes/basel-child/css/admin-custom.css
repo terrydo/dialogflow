@@ -1,0 +1,12 @@
+#adminmenu > li {
+	display: none;
+}
+#adminmenu #menu-posts-product {
+	display: block;
+}
+#wpadminbar .quicklinks ul > li {
+	display: none;
+}
+#wpadminbar .quicklinks ul li#wp-admin-bar-site-name {
+	display: block;
+}

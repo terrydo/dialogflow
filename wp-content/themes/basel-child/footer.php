@@ -50,9 +50,16 @@
 </div> <!-- end wrapper -->
 
 <div class="basel-close-side"></div>
+<div class="mybot">
+    <img src="<?php echo get_stylesheet_directory_uri();?>/img/mybot.gif" class="img-responsive center-block" alt="mybot">
+</div>
 <div id="bl-chatbot-box">
+    <div class="bot-window">
+        <img src="<?php echo get_stylesheet_directory_uri();?>/img/chatbot-pin.png" alt="botpin">
+        <span>Ask Propbot</span>
+    </div>
     <div class="close-chat-box">
-        <i class="fa fa-close"></i>
+        <i class="fa fa-angle-down"></i>
     </div>
     <div class="tab-content">
         <div id="faq-chat" class="tab-pane fade in active">
@@ -66,12 +73,7 @@
             </form>
         </div>
         <div id="faq-bot" class="tab-pane fade">
-            <iframe
-                allow="microphone;"
-                width="350"
-                height="430"
-                src="https://console.dialogflow.com/api-client/demo/embedded/7eb6f5f9-c299-4ebe-906e-1630e4ca8848">
-            </iframe>
+            <?php get_template_part('inc/data','faq');?>       
         </div>
     </div>
     <div id="bl-chatbot-select">
@@ -107,6 +109,9 @@ $sessionID = bin2hex(random_bytes(16));
         jQuery(document).ready(function ($) {
             jQuery("#lightSlider").lightSlider();
             $('.close-chat-box').click(function(){
+                $('#bl-chatbot-box').toggleClass('hide');
+            });
+            $('.mybot').click(function(){
                 $('#bl-chatbot-box').toggleClass('hide');
             })
         });

@@ -458,13 +458,15 @@ try {
             $botOptions = end($dec->queryResult->outputContexts)->parameters;
 
             // must lower case value from chatbot to match with slug in wordpress
-            $category = strtolower($botOptions->typeOfWatch);
-            $brand = strtolower($botOptions->brand);
+            $category = strtolower($dec->queryResult->outputContexts[1]->parameters->typeOfWatch);
+            $brand = strtolower($dec->queryResult->outputContexts[1]->parameters->brand);
+            // $category = strtolower($botOptions->typeOfWatch);
+            // $brand = strtolower($botOptions->brand);
             $material = strtolower($botOptions->material);
             $price_from = (int)$botOptions->price_from;
             $price_to = (int)$botOptions->price_to;
             $gender = strtolower($botOptions->gender);
-            $favorite = strtolower($botOptions->interest);
+            $interest = strtolower($botOptions->interest);
             $age = $botOptions->ageGroup;
 
             // arg query to get products
@@ -472,63 +474,45 @@ try {
                 'post_type' => 'product',
                 'tax_query' => array(
                     'relation' => 'AND',
-                    array(
+                    [
                         'taxonomy' => 'product_cat',
                         'terms' => $category,
                         'field' => 'slug'
-                    ),
-                    array(
+                    ],
+                    [
                         'taxonomy' => 'brand',
                         'terms' => $brand,
                         'field' => 'slug'
-                    ),
-                    array(
+                    ],
+                    [
                         'taxonomy' => 'material',
                         'terms' => $material,
                         'field' => 'slug'
-                    ),
-                    array(
-                        'taxonomy' => 'favorite',
-                        'terms' => $material,
+                    ],
+                    [
+                        'taxonomy' => 'interest',
+                        'terms' => $interest,
                         'field' => 'slug'
-                    ),
-                    array(
+                    ],
+                    [
                         'taxonomy' => 'age',
                         'terms' => $age,
                         'field' => 'slug'
-                    ),
-                    array(
+                    ],
+                    [
                         'taxonomy' => 'gender',
                         'terms' => $gender,
                         'field' => 'slug'
-                    )
+                    ]
                 ),
-                // 'meta_query' => [
-                //     'relation'      => 'AND',
-                //     'min_price' => [
-                //         'relation' => 'AND',
-                //         [
-                //             'key'     => 'min_price',
-                //             'value'   => $price_from,
-                //             'compare' => '>=',
-                //             'type' => 'NUMERIC'
-                //         ]
-                //     ],
-                //     'max_price' => [
-                //         'relation' => 'AND',
-                //         [
-                //             'key'     => 'max_price',
-                //             'value'   => $price_to,
-                //             'compare' => '<=',
-                //             'type' => 'NUMERIC'
-                //         ],
-                //         [
-                //             'key'     => 'max_price',
-                //             'value'   => '',
-                //             'compare' => '!='
-                //         ]
-                //     ]
-                // ],
+                'meta_query' => [
+                    [
+                        'key' => '_price',
+                        'value' => [$price_from, $price_to],
+                        'compare' => 'BETWEEN',
+                        'type' => 'NUMERIC'
+                    ]
+                ],
                 'showposts'           => -1
             );
 
